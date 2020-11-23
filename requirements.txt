@@ -1,2 +1,4 @@
 slackclient
 python-dotenv
+flask
+slackeventsapi
