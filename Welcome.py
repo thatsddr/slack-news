@@ -11,7 +11,7 @@ class WelcomeMessage:
     def __init__(self, channel, user):
         self.channel = channel
         self.user = user
-        self.icon_emoji= ":robot_face:"
+        self.icon_emoji= ":newspaper:"
         self.timestamp = ""
         self.completed = False
 
