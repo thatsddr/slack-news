@@ -20,7 +20,7 @@ class RandomNews(NewsMessage):
             "type": "section",
             "text" : {
                 "type": "mrkdwn",
-                "text":(f":mag: Here are some random news'\n\n")
+                "text":(f":mag: Here are some random news\n\n")
             }
         },
         {"type": "divider"},
@@ -57,5 +57,3 @@ class RandomNews(NewsMessage):
         if final["len"] > 0:
             blocks = self.format()
             return self.client.chat_postMessage(channel=self.cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
-        else:
-            requests.post(url=self.response_url,data=json.dumps({"text":"no sources in our database","username": "slack-news", "icon_emoji":":newspaper:"})) 
