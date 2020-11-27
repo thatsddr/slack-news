@@ -41,10 +41,8 @@ class ByKeyword(NewsMessage):
         self.get_items()
         final = self.get_results()
         if final == None:
-            return requests.post(url=self.response_url,data=json.dumps({"text":"an error occured","username": "slack-news", "icon_emoji":":newspaper:"})) 
+            return requests.post(url=self.response_url,data=json.dumps({"text":"No results","username": "slack-news", "icon_emoji":":newspaper:"})) 
 
         if final["len"] > 0:
             blocks = self.format()
             return self.client.chat_postMessage(channel=self.cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
-        else:
-            requests.post(url=self.response_url,data=json.dumps({"text":"no sources in our database","username": "slack-news", "icon_emoji":":newspaper:"})) 
