@@ -1,129 +1,65 @@
 import slack
 import os
+import string
+import json
+import random
+import requests
+from slackeventsapi import SlackEventAdapter
+from threading import Thread
 from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask, request, Response
-from slackeventsapi import SlackEventAdapter
-from Welcome import WelcomeMessage
-import string
-from datetime import datetime, timedelta
+import pprint
+from urllib.parse import quote
+from bs4 import BeautifulSoup as bs
 
+pp = pprint.PrettyPrinter(indent=4)
+
+#dotenv configuration
 env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
 
+#flask initialization and slack api implementation
 app = Flask(__name__)
 slack_event_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'],'/slack/events',app)
-
 client = slack.WebClient(token=os.environ['SLACK_TOKEN'])
 BOT_ID = client.api_call("auth.test")["user_id"]
 
-message_count={}
-welcome_messages = {}
+#important
+URLS = {
+    "www.cnn.com": {"name": "CNN", "bias":"left"},
+    "www.nytimes.com": {"name": "New York Times", "bias":"left"},
+    "www.theguardian.com": {"name": "The Guardian", "bias":"left"},
+    "apnews.com": {"name": "Associated Press", "bias":"center"},
+    "www.reuters.com": {"name": "Reuters", "bias":"center"},
+    "www.ft.com": {"name": "Financial Times", "bias":"center"},
+    "www.thehill.com": {"name": "The Hill", "bias": "center"},
+    "www.foxnews.com": {"name": "Fox News", "bias":"right"},
+    "www.nypost.com": {"name": "New York Post", "bias":"right"},
+    "www.wsj.com": {"name": "Wall Street Journal", "bias":"right"},
+    "www.nationalreview.com": {"name": "National Review", "bias":"right"},
+    "reason.com": {"name": "Reason", "bias":"right"}
+}
 
-FILTER = ['trump won', 'biden stole the election', "qanon is true", "coronavirus is fake"]
-
-SCHEDULED_IDS = []
-
-def send_welcome_message(channel, user):
-    if channel not in welcome_messages:
-        welcome_messages[channel] = {}
-    if user not in welcome_messages[channel]:
-        welcome = WelcomeMessage(channel, user)
-        message = welcome.get_msg()
-        response = client.chat_postMessage(**message)
-        welcome.timestamp = response['ts']
-        welcome_messages[channel][user] = welcome
-    else:
-        client.chat_postMessage(channel=channel, text=f"You've already been welcomed without completing the task", icon_emoji=":newspaper:")
-
-def check_fake(message):
-    msg = message.lower()
-    msg = msg.translate(str.maketrans('','', string.punctuation))
-
-    return any(word in msg for word in FILTER)
-
-def schedule_message(msg):
-    response = client.chat_scheduleMessage(channel=msg["channel"], text=msg['text'], post_at=msg['post_at'], icon_emoji=msg["icon_emoji"]).data
-    id_ = response.get('scheduled_message_id')
-    return id_
-
-def delete_scheduled(ids, channel):
-    try:
-        for _id in ids:
-            client.chat_deleteScheduledMessage(channel=channel, scheduled_message_id=_id)
-            print("DELETED")
-    except:
-        print("no")
-
-
-@slack_event_adapter.on('message')
-def message(payload):
-    event = payload.get('event', {})
-    channel_id = event.get("channel")
-    user_id = event.get("user")
-    text = event.get("text")
-
-    if user_id != None and BOT_ID != user_id:
-        if user_id in message_count:
-            message_count[user_id] += 1
-        else:
-            message_count[user_id] = 1
-    
-        if text.lower() == "bot, welcome me":
-            send_welcome_message(channel_id, user_id)
-        elif check_fake(text):
-            ts = event.get('ts')
-            client.chat_postMessage(channel=channel_id, thread_ts=ts, text="We detected misleading or fake informations in this message", icon_emoji=":newspaper:")
-
-
+#reaction handler that deletes a message if it was sent from the bot and the user reacts with :x:
 @slack_event_adapter.on('reaction_added')
 def check_reaction(payload):
     event = payload.get('event', {})
     channel_id = event.get("item", {}).get("channel")
-    user_id = event.get("user")
 
     if payload["event"]["reaction"] == "x":
         try:
             client.chat_delete(
-                channel=payload["event"]["item"]["channel"], ts=payload["event"]["item"]["ts"]
+                channel=channel_id, ts=payload["event"]["item"]["ts"]
             )
         except:
-            print("no")
+            pass
 
-    if channel_id not in welcome_messages:
-        return
-    welcome = welcome_messages[channel_id][user_id]
-    welcome.completed = True
-    welcome.channel = channel_id
-    message = welcome.get_msg()
-    updated_message = client.chat_update(**message)
-    welcome.timestamp = updated_message["ts"]
-    del welcome_messages[channel_id]
 
-#slash commands
-@app.route("/count-messages", methods=["POST"])
-def count_messages():
-    data = request.form
-    uid = data.get("user_id")
-    cid = data.get("channel_id")
-    name = data.get("user_name")
-    current_num = message_count.get(uid,0)
-    print(data)
-    client.chat_postMessage(channel=cid, text=f"since the development server is on, {name} sent {current_num} messages", icon_emoji=":newspaper:")
-    return Response(), 200
+#slack slash commands
 
-@app.route("/nuke", methods=["POST"])
-def nuke():
-    data = request.form
-    cid = data.get("channel_id")
-    res = client.conversations_history(channel=cid)
-    for m in res["messages"]:
-        try:
-            client.chat_delete(channel=cid, ts=m["ts"])
-        except:
-            print("failed to delete")
-    return Response(), 200
 
+#test command to check if the bot is installed
 @app.route("/test", methods=["POST"])
 def test():
     data = request.form
@@ -132,24 +68,135 @@ def test():
     client.chat_postMessage(channel=cid, text=f"This app is working properly in #{cname}", icon_emoji=":newspaper:")
     return Response(), 200
 
-@app.route("/schedule", methods=["POST"])
-def schedule():
+
+#help command
+@app.route("/help", methods=["POST"])
+def help():
     data = request.form
     cid = data.get("channel_id")
-    SCHEDULED_IDS.append(schedule_message({"text":"Scheduled message", "post_at": (datetime.now() + timedelta(minutes=1)).timestamp(), "channel": cid, "icon_emoji":":newspaper:"}))
+    client.chat_postMessage(channel=cid, text=f"This command will give you some help", icon_emoji=":newspaper:")
     return Response(), 200
 
-@app.route("/unschedule", methods=["POST"])
-def unschedule():
+#gets random news
+@app.route("/random-news", methods=["POST"])
+def random_news():
     data = request.form
     cid = data.get("channel_id")
-    delete_scheduled(SCHEDULED_IDS, cid)
-    for i in SCHEDULED_IDS:
-        SCHEDULED_IDS.remove(i)
+    client.chat_postMessage(channel=cid, text=f"this command will return random news", icon_emoji=":newspaper:")
     return Response(), 200
 
+
+#searches for news by keyword
+def keywordAction(url, cid, text):
+    ut = quote(text)
+    headers = headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}
+    
+    res = requests.get(f"https://news.google.com/rss/search?q={ut}&hl=en-US&gl=US&ceid=US:en", headers=headers)
+    soup = bs(res.content, "html.parser")
+
+    findings = []
+    for itm in soup.find_all("item"):
+        obj = {}
+        obj["title"] = itm.title.string
+        obj["link"] = itm.link.next_sibling
+        obj["source"] = itm.find_all("source")[0].get("url")
+        findings.append(obj)
+    
+    results = {}
+    bias_covered = []
+    while len(bias_covered) < 3:
+        for i in findings:
+            if i["source"][8:] in URLS:
+                bias = URLS[i["source"][8:]]["bias"]
+                if bias not in bias_covered:
+                    results[bias] = i
+                    bias_covered.append(bias)
+                    print("ADDED")
+    
+    if len(bias_covered) > 0:
+        links = ""
+        for k, v in results.items():
+            source = v["source"][8:]
+            name = URLS[source]["name"]
+            link = v["link"]
+            links += f"from the {k}: <{link}|{name}>\n"
+
+        index = int(random.randrange(len(bias_covered)-1))
+        bias_type = bias_covered[index]
+        main_title = results[bias_type]["title"]
+        blocks = [{
+            "type": "section",
+            "text" : {
+                "type": "mrkdwn",
+                "text":(f"Here is what I've found about '{text}'\n\n")
+            }
+            },
+            {"type": "divider"},
+            {
+            "type": "section",
+            "text" : {
+                "type": "mrkdwn",
+                "text":(f"{main_title}\n")
+                }
+            },
+            {"type": "divider"},
+            {
+            "type": "section",
+            "text" : {
+                "type": "mrkdwn",
+                "text":(f"\n\n{links}")
+            }
+        }]
+        client.chat_postMessage(channel=cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
+    else:
+        payload = {"text":"couldn't find enough","username": "slack-news", "icon_emoji":":newspaper:"}
+        requests.post(url=url,data=json.dumps(payload)) 
+
+@app.route("/search-news", methods=["POST"])
+def keywordSearch():
+    data = request.form
+    cid = data.get("channel_id")
+    txt = data.get("text")
+    response_url = data.get("response_url")
+    if txt.strip() != "":
+        payload = {"text":"please wait...","username": "slack-news", "icon_emoji":":newspaper:"}
+        requests.post(response_url,data=json.dumps(payload)) 
+        thr = Thread(target=keywordAction, args=[response_url, cid, txt])
+        thr.start()
+    else:
+        payload = {"text":"your task cannot be completed","username": "slack-news", "icon_emoji":":newspaper:"}
+        requests.post(response_url,data=json.dumps(payload)) 
+    return Response(), 200
+
+
+#searches for news by url
+@app.route("/search-url", methods=["POST"])
+def urlSearch():
+    data = request.form
+    cid = data.get("channel_id")
+    client.chat_postMessage(channel=cid, text=f"this command will return news from a similar url", icon_emoji=":newspaper:")
+    return Response(), 200
+
+
+#deletes all the messages sent from the bot, to be deleted after testing
+def nukeAction(url, cid, msgs): 
+    for m in msgs:
+        try:
+            client.chat_delete(channel=cid, ts=m["ts"])
+        except:
+            pass
+    payload = {"text":"your task is complete","username": "slack-news", "icon_emoji":":newspaper:"}
+    requests.post(url,data=json.dumps(payload)) 
+@app.route("/nuke", methods=["POST"])
+def nuke():
+    data = request.form
+    cid = data.get("channel_id")
+    response_url = data.get("response_url")
+    res = client.conversations_history(channel=cid)
+    thr = Thread(target=nukeAction, args=[response_url, cid, res["messages"]])
+    thr.start()
+    return Response(), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
-    
     

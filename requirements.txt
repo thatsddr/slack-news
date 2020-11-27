@@ -2,3 +2,5 @@ slackclient
 python-dotenv
 flask
 slackeventsapi
+requests
+bs4
