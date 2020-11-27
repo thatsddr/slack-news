@@ -1,5 +1,6 @@
 URLS = {
     "www.cnn.com": {"name": "CNN", "bias":"left"},
+    "edition.cnn.com": {"name": "CNN", "bias":"left"},
     "www.nytimes.com": {"name": "New York Times", "bias":"left"},
     "www.theguardian.com": {"name": "The Guardian", "bias":"left"},
     "abcnews.go.com":{"name": "ABC", "bias": "left"},
