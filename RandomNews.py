@@ -2,6 +2,10 @@ from NewsMessage import NewsMessage
 from urllib.parse import quote
 import requests
 import json
+import random
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
 
 class RandomNews(NewsMessage):
     def __init__(self, cid, response_url, client):
@@ -38,15 +42,17 @@ class RandomNews(NewsMessage):
 
     def go(self):
         self.get_items()
-        random_news = self.get_results()
-        if random_news == None:
-            return requests.post(url=self.response_url,data=json.dumps({"text":"an error occured","username": "slack-news", "icon_emoji":":newspaper:"})) 
 
-        to_search = random_news["main_title"][0:random_news["main_title"].index("-")]
+        random_news = self.findings[random.randint(0,len(self.findings) - 1)]
+        
+        to_search = random_news["title"][0:random_news["title"].index("-")]
         self.url = f"https://news.google.com/rss/search?q={quote(to_search)}&hl=en-US&gl=US&ceid=US:en"
 
         self.get_items()
         final = self.get_results()
+
+        if final == None:
+            return requests.post(url=self.response_url,data=json.dumps({"text":"an error occured","username": "slack-news", "icon_emoji":":newspaper:"})) 
 
         if final["len"] > 0:
             blocks = self.format()
