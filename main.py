@@ -9,8 +9,7 @@ from dotenv import load_dotenv
 from flask import Flask, request, Response
 from ByKeyword import ByKeyword
 from RandomNews import RandomNews
-
-
+from ByURL import ByURL
 
 #dotenv configuration
 env_path = Path('.') / '.env'
@@ -94,7 +93,14 @@ def random_news():
 def urlSearch():
     data = request.form
     cid = data.get("channel_id")
-    client.chat_postMessage(channel=cid, text=f"this command will return news from a similar url", icon_emoji=":newspaper:")
+    input_url = data.get("text")
+    response_url = data.get("response_url")
+    payload = {"text":"please wait...","username": "slack-news", "icon_emoji":":newspaper:"}
+    requests.post(response_url,data=json.dumps(payload))
+    
+    news = ByURL(input_url, cid, response_url, client)
+    thr = Thread(target=news.go)
+    thr.start()
     return Response(), 200
 
 
