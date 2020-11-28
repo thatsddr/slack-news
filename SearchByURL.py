@@ -92,5 +92,17 @@ class ByURL(NewsMessage):
                 blocks = self.format()
                 return self.client.chat_postMessage(channel=self.cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
         else:
-            return requests.post(url=self.response_url,data=json.dumps({"text":"Something went wrong...","username": "slack-news", "icon_emoji":":newspaper:"})) 
+            return requests.post(url=self.response_url,data=json.dumps({"text":"Something went wrong...","username": "slack-news", "icon_emoji":":newspaper:"}))
+
+    def web(self):
+        self.url_info()
+        if self.info.get("Error") == "Error":
+            return None
+        if self.text != None and self.text != "":
+            self.url = f"https://news.google.com/rss/search?q={quote(self.text)}&hl=en-US&gl=US&ceid=US:en"
+            self.get_items()
+            return self.get_results(exclude=self.exclude)
+        else:
+            return None
+        
           

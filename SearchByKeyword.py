@@ -46,3 +46,7 @@ class ByKeyword(NewsMessage):
         if final["len"] > 0:
             blocks = self.format()
             return self.client.chat_postMessage(channel=self.cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
+        
+    def web(self):
+        self.get_items()
+        return self.get_results()

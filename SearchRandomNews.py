@@ -3,9 +3,6 @@ from urllib.parse import quote
 import requests
 import json
 import random
-import pprint
-
-pp = pprint.PrettyPrinter(indent=4)
 
 class RandomNews(NewsMessage):
     def __init__(self, cid, response_url, client):
@@ -57,3 +54,11 @@ class RandomNews(NewsMessage):
         if final["len"] > 0:
             blocks = self.format()
             return self.client.chat_postMessage(channel=self.cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
+        
+    def web(self):
+        self.get_items()
+        random_news = self.findings[random.randint(0,len(self.findings) - 1)]
+        to_search = random_news["title"][0:random_news["title"].index("-")]
+        self.url = f"https://news.google.com/rss/search?q={quote(to_search)}&hl=en-US&gl=US&ceid=US:en"
+        self.get_items()
+        return self.get_results()
