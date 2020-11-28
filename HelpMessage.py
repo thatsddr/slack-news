@@ -2,26 +2,31 @@ import json
 import requests 
 class HelpMessage:
     def __init__(self, cid, response_url, client, command=None):
+        self.baseURL = "localhost:5000"
         self.cid=cid
         self.response_url= response_url
         self.client = client
         self.possible_commands = {"help":{
                                         "description": ":black_nib: /help [command]\n\n:question: This command gives help on either one specified command or all of them if no command is specified.",
-                                        "example":"/help\n/help search-news"},
+                                        "example":"/help\n/help search-news",
+                                        "api_example":f"{self.baseURL}/help\n{self.baseURL}/help?command=search-news"},
                                 "search-news":{
                                         "description":":black_nib: /search-news keyword(s)\n\n:question: This command will search for news related to the specified keyword(s) from all sides of the political spectrum. It will return an error if no keyword is specified.", 
-                                        "example": "/search-news coronavirus vaccine\n/search-news Trump"}, 
+                                        "example": "/search-news coronavirus vaccine\n/search-news Trump",
+                                        "api_example": f"{self.baseURL}/search-news?keyword=coronavirus%20vaccine"}, 
                                 "search-url":{
                                         "description":":black_nib: /search-url URL\n\n:question: This command will try to get the title of article related to the link you've specified. If the url is supported, this command will tell what kind of bias the source has and search for articles only from sources with a different bias.",
-                                        "example": "/search-url https://edition.cnn.com/2020/11/28/politics/donald-trump-election-georgia-runoffs/index.html"
-                                    }, 
+                                        "example": "/search-url https://edition.cnn.com/2020/11/28/politics/donald-trump-election-georgia-runoffs/index.html",
+                                        "api_example": f"{self.baseURL}/search-url?url=https://edition.cnn.com/2020/11/28/politics/donald-trump-election-georgia-runoffs/index.html"}, 
                                 "random-news": {
                                         "description":":black_nib: /random-news\n\n:question: This command finds a random news and searches for it among sources with different kinds of political bias.",
-                                        "example":"/random-news"
+                                        "example":"/random-news",
+                                        "api_example":f"{self.baseURL}/random-news"
                             }}
         self.command = command
-        if len(self.command) > 0:
-            self.command = self.command if self.command[0] != '/' else self.command[1:]
+        if self.command:
+            if len(self.command) > 0:
+                self.command = self.command if self.command[0] != '/' else self.command[1:]
     
     def format(self):
         blocks = []
@@ -75,3 +80,11 @@ class HelpMessage:
         if blocks == None:
             return None
         return self.client.chat_postMessage(channel=self.cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
+    
+    def web(self):
+        if self.command == None:
+            return self.possible_commands
+        elif self.possible_commands.get(self.command) != None:
+            return self.possible_commands.get(self.command)
+        else:
+            return None
