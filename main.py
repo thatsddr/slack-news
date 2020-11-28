@@ -7,9 +7,9 @@ from threading import Thread
 from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask, request, Response
-from ByKeyword import ByKeyword
-from RandomNews import RandomNews
-from ByURL import ByURL
+from SearchByKeyword import ByKeyword
+from SearchRandomNews import RandomNews
+from SearchByURL import ByURL
 
 #dotenv configuration
 env_path = Path('.') / '.env'
@@ -57,7 +57,6 @@ def help():
     return Response(), 200
 
 
-
 @app.route("/search-news", methods=["POST"])
 def keywordSearch():
     data = request.form
@@ -69,7 +68,10 @@ def keywordSearch():
         requests.post(response_url,data=json.dumps(payload))
         news = ByKeyword(txt, cid, response_url, client)
         thr = Thread(target=news.go)
-        thr.start()
+        try:
+            thr.start()
+        except:
+            return requests.post(response_url,data=json.dumps({"text":"Fatal Error","username": "slack-news", "icon_emoji":":newspaper:"})) 
     else:
         requests.post(response_url,data=json.dumps({"text":"search for a keyword","username": "slack-news", "icon_emoji":":newspaper:"})) 
     return Response(), 200
@@ -84,7 +86,10 @@ def random_news():
     requests.post(response_url,data=json.dumps(payload))
     news = RandomNews(cid, response_url, client)
     thr = Thread(target=news.go)
-    thr.start()
+    try:
+        thr.start()
+    except:
+        return requests.post(response_url,data=json.dumps({"text":"Fatal Error","username": "slack-news", "icon_emoji":":newspaper:"})) 
     return Response(), 200
 
 
@@ -97,10 +102,12 @@ def urlSearch():
     response_url = data.get("response_url")
     payload = {"text":"please wait...","username": "slack-news", "icon_emoji":":newspaper:"}
     requests.post(response_url,data=json.dumps(payload))
-    
     news = ByURL(input_url, cid, response_url, client)
     thr = Thread(target=news.go)
-    thr.start()
+    try:
+        thr.start()
+    except:
+        return requests.post(response_url,data=json.dumps({"text":"Fatal Error","username": "slack-news", "icon_emoji":":newspaper:"})) 
     return Response(), 200
 
 
