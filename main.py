@@ -10,6 +10,7 @@ from flask import Flask, request, Response
 from SearchByKeyword import ByKeyword
 from SearchRandomNews import RandomNews
 from SearchByURL import ByURL
+from HelpMessage import HelpMessage
 
 #dotenv configuration
 env_path = Path('.') / '.env'
@@ -53,10 +54,17 @@ def test():
 def help():
     data = request.form
     cid = data.get("channel_id")
-    client.chat_postMessage(channel=cid, text=f"This command will give you some help", icon_emoji=":newspaper:")
+    txt = data.get("text")
+    response_url = data.get("response_url")
+    help_msg = HelpMessage(cid, response_url, client, txt)
+    thr = Thread(target=help_msg.go)
+    try:
+        thr.start()
+    except:
+        return requests.post(response_url,data=json.dumps({"text":"Fatal Error","username": "slack-news", "icon_emoji":":newspaper:"})) 
     return Response(), 200
 
-
+#search news by keyword
 @app.route("/search-news", methods=["POST"])
 def keywordSearch():
     data = request.form
@@ -77,6 +85,7 @@ def keywordSearch():
     return Response(), 200
 
 
+#random news
 @app.route("/random-news", methods=["POST"])
 def random_news():
     data = request.form
@@ -100,14 +109,18 @@ def urlSearch():
     cid = data.get("channel_id")
     input_url = data.get("text")
     response_url = data.get("response_url")
-    payload = {"text":"please wait...","username": "slack-news", "icon_emoji":":newspaper:"}
-    requests.post(response_url,data=json.dumps(payload))
-    news = ByURL(input_url, cid, response_url, client)
-    thr = Thread(target=news.go)
-    try:
-        thr.start()
-    except:
-        return requests.post(response_url,data=json.dumps({"text":"Fatal Error","username": "slack-news", "icon_emoji":":newspaper:"})) 
+    if input_url.strip() != "":
+        payload = {"text":"please wait...","username": "slack-news", "icon_emoji":":newspaper:"}
+        requests.post(response_url,data=json.dumps(payload))
+        news = ByURL(input_url, cid, response_url, client)
+        thr = Thread(target=news.go)
+        try:
+            thr.start()
+        except:
+            return requests.post(response_url,data=json.dumps({"text":"Fatal Error","username": "slack-news", "icon_emoji":":newspaper:"})) 
+    else:
+        requests.post(response_url,data=json.dumps({"text":"please search for an url","username": "slack-news", "icon_emoji":":newspaper:"})) 
+    
     return Response(), 200
 
 
