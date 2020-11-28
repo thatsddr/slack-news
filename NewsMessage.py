@@ -71,6 +71,6 @@ class NewsMessage:
                     self.main_title = self.results[bias_type]["title"]
                     ok = True
 
-            return {"links":self.links, "main_title":self.main_title, "len":len(self.results)}
+            return {"links":self.links, "main_title":self.main_title, "len":len(self.results), "raw_res":self.results}
         else:
             return None
