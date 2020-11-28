@@ -1,7 +1,6 @@
 from NewsMessage import NewsMessage
 from bs4 import BeautifulSoup as bs
 from urllib.parse import quote
-from urls import URLS
 import requests
 import json
 
@@ -52,20 +51,29 @@ class ByURL(NewsMessage):
             return self.info
 
         soup = bs(res.content, "html.parser")
-        self.text = soup.find_all("h1")[0].string
+        self.text = soup.find_all("h1")[0].get_text()
+
+        if self.text == "" or self.text == None:
+            self.info = {"Error": "Error"}
+            return self.info
 
         self.info = {"supported": False, "text":self.text}
-        
-        for k,v in URLS.items():
-            if k in self.input_url:
-                self.info["supported"] = True
-                self.info["name"] = v["name"]
-                self.info["bias"] = v["bias"]
-                self.exclude.append(self.info["bias"])
-                return
+
+        baseURL = self.input_url[self.input_url.index("//")+2:]
+        toSearch = ""
+        try:
+            toSearch = baseURL[0:baseURL.index("/")]
+        except:
+            toSearch = baseURL
+
+        supportedUrl = self.URLS.get(toSearch)
+        if supportedUrl != None:
+            self.info["supported"] = True
+            self.info["name"] = supportedUrl["name"]
+            self.info["bias"] = supportedUrl["bias"]
+            self.exclude.append(self.info["bias"])
         
         if self.info["supported"] == False:
-            self.info["supported"] = False
             self.info["name"] = "unknown"
             self.info["bias"] = "unknown, unsupported source"
 

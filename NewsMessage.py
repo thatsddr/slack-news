@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup as bs
-from urls import URLS
 import random
+import json
 
 class NewsMessage:
     def __init__(self):
@@ -11,6 +11,14 @@ class NewsMessage:
         self.results = {}
         self.url = ""
         self.bias_covered = []
+        self.URLS = []
+        with open("urls.json", "r") as u:
+            try:
+                self.URLS = json.load(u)
+                u.close()
+            except Exception:
+                raise (Exception)
+        
 
     def get_items(self):
         headers = headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}
@@ -38,8 +46,8 @@ class NewsMessage:
         self.results = {}
         self.bias_covered = exclude if len(exclude) > 0 else []
         for i in self.findings:
-            if i["source"][8:] in URLS:
-                bias = URLS[i["source"][8:]]["bias"]
+            if i["source"][8:] in self.URLS:
+                bias = self.URLS[i["source"][8:]]["bias"]
                 if bias not in self.bias_covered:
                     self.results[bias] = i
                     self.bias_covered.append(bias)
@@ -52,7 +60,7 @@ class NewsMessage:
             self.links = ""
             for k, v in self.results.items():
                 source = v["source"][8:]
-                name = URLS[source]["name"]
+                name = self.URLS[source]["name"]
                 link = v["link"]
                 self.links += f"from the {k}: <{link}|{name}>\n"
                 
@@ -66,4 +74,3 @@ class NewsMessage:
             return {"links":self.links, "main_title":self.main_title, "len":len(self.results)}
         else:
             return None
-        
