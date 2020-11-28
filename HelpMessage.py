@@ -19,7 +19,9 @@ class HelpMessage:
                                         "description":":black_nib: /random-news\n\n:question: This command finds a random news and searches for it among sources with different kinds of political bias.",
                                         "example":"/random-news"
                             }}
-        self.command = command if command[0] != '/' else command[1:]
+        self.command = command
+        if len(self.command) > 0:
+            self.command = self.command if self.command[0] != '/' else self.command[1:]
     
     def format(self):
         blocks = []
