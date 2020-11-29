@@ -132,3 +132,4 @@ dmypy.json
 reminder.txt
 .vscode/
 test*.py
+test/
