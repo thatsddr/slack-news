@@ -37,28 +37,40 @@ class RandomNews(NewsMessage):
             }
         }]
 
-    def go(self):
-        self.get_items()
-
-        random_news = self.findings[random.randint(0,len(self.findings) - 1)]
-        
-        to_search = random_news["title"][0:random_news["title"].index("-")]
-        self.url = f"https://news.google.com/rss/search?q={quote(to_search)}&hl=en-US&gl=US&ceid=US:en"
-
-        self.get_items()
-        final = self.get_results()
-
-        if final == None:
-            return requests.post(url=self.response_url,data=json.dumps({"text":"an error occured","username": "slack-news", "icon_emoji":":newspaper:"})) 
-
-        if final["len"] > 0:
-            blocks = self.format()
-            return self.client.chat_postMessage(channel=self.cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
-        
-    def web(self):
+    def get_data(self):
         self.get_items()
         random_news = self.findings[random.randint(0,len(self.findings) - 1)]
         to_search = random_news["title"][0:random_news["title"].index("-")]
         self.url = f"https://news.google.com/rss/search?q={quote(to_search)}&hl=en-US&gl=US&ceid=US:en"
         self.get_items()
         return self.get_results()
+    
+    def is_enough(self, data):
+        if data == None:
+                return False
+        if len(data["raw_res"]) < 2:
+            return False
+        return True
+
+    def go(self):
+        final = self.get_data()
+        attempts = 0
+        while not self.is_enough(final) and attempts<=15:
+            final = self.get_data()
+            attempts += 1
+        if attempts>15:
+            return requests.post(self.response_url,data=json.dumps({"text":"Maximum attempts","username": "slack-news", "icon_emoji":":newspaper:"})) 
+        if final != None:
+            blocks = self.format()
+            return self.client.chat_postMessage(channel=self.cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
+
+
+    def web(self):
+        final = self.get_data()
+        attempts = 0
+        while not self.is_enough(final) and attempts<=9:
+            final = self.get_data()
+            attempts += 1
+        if attempts>9:
+            return None
+        return final

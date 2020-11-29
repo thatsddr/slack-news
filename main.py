@@ -127,7 +127,7 @@ def random_news():
         data = request.form
         cid = data.get("channel_id")
         response_url = data.get("response_url")
-        payload = {"text":"please wait...","username": "slack-news", "icon_emoji":":newspaper:"}
+        payload = {"text":"please wait (this operation can take a while)...","username": "slack-news", "icon_emoji":":newspaper:"}
         requests.post(response_url,data=json.dumps(payload))
         news = RandomNews(cid, response_url, client)
         thr = Thread(target=news.go)
@@ -145,12 +145,12 @@ def random_news():
                 future = executor.submit(news.web)
                 raw = future.result()
         except:
-            return Response(), 500
+            return Response(json.dumps({"Error":"An unexpected internal error occured"})), 500
         if raw:
             data = raw.get("raw_res")
             return Response(json.dumps(data)), 200
         else:
-            return Response(json.dumps({"Error":"No Results"})), 404
+            return Response(json.dumps({"Error":"Maximum attempts reached"})), 504
 
 
 #searches for news by url
@@ -191,24 +191,6 @@ def urlSearch():
                 return Response(json.dumps({"Error":"No Results"})), 404
         else:
             return Response(json.dumps({"Error":"No URL"})), 404
-
-#deletes all the messages sent from the bot, to be deleted after testing
-def nukeAction(url, cid, msgs): 
-    for m in msgs:
-        try:
-            client.chat_delete(channel=cid, ts=m["ts"])
-        except:
-            pass
-    requests.post(url,data=json.dumps({"text":"your task is complete","username": "slack-news", "icon_emoji":":newspaper:"})) 
-@app.route("/nuke", methods=["POST"])
-def nuke():
-    data = request.form
-    cid = data.get("channel_id")
-    response_url = data.get("response_url")
-    res = client.conversations_history(channel=cid)
-    thr = Thread(target=nukeAction, args=[response_url, cid, res["messages"]])
-    thr.start()
-    return Response(), 200
 
 if __name__ == "__main__":
     app.run(debug=True)

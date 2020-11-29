@@ -44,6 +44,8 @@ class ByURL(NewsMessage):
     def url_info(self):
         headers = headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}
         res = {}
+        if self.input_url[0:8] != "https://" and self.input_url[0:7] != "http://":
+            self.input_url = "https://"+self.input_url
         try:
             res = requests.get(url=self.input_url, headers=headers)
         except:
