@@ -36,7 +36,7 @@ def message(payload):
         regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
         url = re.findall(regex,string)       
         return [x[0] for x in url]
-    if '<@U01EWL1LP1D>' in text and thread_ts:
+    if BOT_ID in text and thread_ts:
         res = client.conversations_history(channel=cid, latest=thread_ts, inclusive=True,limit=1)
         message_str = res.get('messages', [{}])[0].get("text", None)
         raw_urls = (check_url(message_str))
