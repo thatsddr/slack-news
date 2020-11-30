@@ -71,7 +71,7 @@ class HelpMessage:
                 }}
                 ]
         else:
-            return requests.post(url=self.response_url,data=json.dumps({"text":f"No command named {self.command}","username": "slack-news", "icon_emoji":":newspaper:"})) 
+            return requests.post(url=self.response_url,data=json.dumps({"text":f"No command named {self.command}"})) 
 
         return blocks
 
@@ -79,7 +79,7 @@ class HelpMessage:
         blocks = self.format()
         if blocks == None:
             return None
-        return self.client.chat_postMessage(channel=self.cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
+        return self.client.chat_postMessage(channel=self.cid, blocks=blocks)
     
     def web(self):
         if self.command == None:

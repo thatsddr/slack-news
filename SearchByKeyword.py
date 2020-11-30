@@ -41,11 +41,11 @@ class ByKeyword(NewsMessage):
         self.get_items()
         final = self.get_results()
         if final == None:
-            return requests.post(url=self.response_url,data=json.dumps({"text":"No results","username": "slack-news", "icon_emoji":":newspaper:"})) 
+            return requests.post(url=self.response_url,data=json.dumps({"text":"No results"})) 
 
         if final["len"] > 0:
             blocks = self.format()
-            return self.client.chat_postMessage(channel=self.cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
+            return self.client.chat_postMessage(channel=self.cid, blocks=blocks)
         
     def web(self):
         self.get_items()

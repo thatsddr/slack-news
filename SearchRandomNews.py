@@ -59,10 +59,10 @@ class RandomNews(NewsMessage):
             final = self.get_data()
             attempts += 1
         if attempts>15:
-            return requests.post(self.response_url,data=json.dumps({"text":"Maximum attempts","username": "slack-news", "icon_emoji":":newspaper:"})) 
+            return requests.post(self.response_url,data=json.dumps({"text":"Maximum attempts"})) 
         if final != None:
             blocks = self.format()
-            return self.client.chat_postMessage(channel=self.cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
+            return self.client.chat_postMessage(channel=self.cid, blocks=blocks)
 
 
     def web(self):

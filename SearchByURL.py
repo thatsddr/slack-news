@@ -83,35 +83,35 @@ class ByURL(NewsMessage):
     def go(self):
         self.url_info()
         if self.info.get("Error") == "Error":
-            return requests.post(url=self.response_url,data=json.dumps({"text":f"No results for {self.input_url}","username": "slack-news", "icon_emoji":":newspaper:"})) 
+            return requests.post(url=self.response_url,data=json.dumps({"text":f"No results for {self.input_url}"})) 
         
         if self.text != None and self.text != "":
             self.url = f"https://news.google.com/rss/search?q={quote(self.text)}&hl=en-US&gl=US&ceid=US:en"
             self.get_items()
             final = self.get_results(exclude=self.exclude)
             if final == None:
-                return requests.post(url=self.response_url,data=json.dumps({"text":f"No results for {self.text}","username": "slack-news", "icon_emoji":":newspaper:"})) 
+                return requests.post(url=self.response_url,data=json.dumps({"text":f"No results for {self.text}"})) 
             if final["len"] > 0:
                 blocks = self.format()
-                return self.client.chat_postMessage(channel=self.cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
+                return self.client.chat_postMessage(channel=self.cid, blocks=blocks)
         else:
-            return requests.post(url=self.response_url,data=json.dumps({"text":"Something went wrong...","username": "slack-news", "icon_emoji":":newspaper:"}))
+            return requests.post(url=self.response_url,data=json.dumps({"text":"Something went wrong..."}))
 
     def go_thread(self):
         self.url_info()
         if self.info.get("Error") == "Error":
-            return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="Error fetching the url", icon_emoji=":newspaper:")
+            return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="Error fetching the url")
         if self.text != None and self.text != "":
             self.url = f"https://news.google.com/rss/search?q={quote(self.text)}&hl=en-US&gl=US&ceid=US:en"
             self.get_items()
             final = self.get_results(exclude=self.exclude)
             if final == None:
-                return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="No matches in other sources", icon_emoji=":newspaper:")
+                return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="No matches in other sources")
             if final["len"] > 0:
                 blocks = self.format()
-                return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
+                return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, blocks=blocks)
         else:
-            return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="Something went wrong...", icon_emoji=":newspaper:")
+            return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="Something went wrong...",)
 
     def web(self):
         self.url_info()

@@ -61,9 +61,9 @@ def message(payload):
                 try:
                     thr.start()
                 except:
-                    return client.chat_postMessage(channel=cid, thread_ts=thread_ts, text="Something went wrong...", icon_emoji=":newspaper:")
+                    return client.chat_postMessage(channel=cid, thread_ts=thread_ts, text="Something went wrong...")
         else:
-            return client.chat_postMessage(channel=cid, thread_ts=thread_ts, text="No URL detected", icon_emoji=":newspaper:")
+            return client.chat_postMessage(channel=cid, thread_ts=thread_ts, text="No URL detected")
 
 
 #reaction handler that deletes a message if it was sent from the bot and the user reacts with :x:
@@ -89,7 +89,7 @@ def test():
         data = request.form
         cid = data.get("channel_id")
         cname = data.get("channel_name")
-        client.chat_postMessage(channel=cid, text=f"This app is working properly in #{cname}", icon_emoji=":newspaper:")
+        client.chat_postMessage(channel=cid, text=f"This app is working properly in #{cname}")
         return Response(), 200
     else:
         return json.dumps({"message":"visit /help to get started"})
@@ -108,7 +108,7 @@ def help():
         try:
             thr.start()
         except:
-            return requests.post(response_url,data=json.dumps({"text":"Fatal Error","username": "slack-news", "icon_emoji":":newspaper:"})) 
+            return requests.post(response_url,data=json.dumps({"text":"Fatal Error"})) 
         return Response(), 200
     else:
         _help = HelpMessage(None, None, None, request.args.get("command"))
@@ -130,16 +130,16 @@ def keywordSearch():
         txt = data.get("text")
         response_url = data.get("response_url")
         if txt.strip() != "":
-            payload = {"text":"please wait...","username": "slack-news", "icon_emoji":":newspaper:"}
+            payload = {"text":"please wait..."}
             requests.post(response_url,data=json.dumps(payload))
             news = ByKeyword(txt, cid, response_url, client)
             thr = Thread(target=news.go)
             try:
                 thr.start()
             except:
-                return requests.post(response_url,data=json.dumps({"text":"Fatal Error","username": "slack-news", "icon_emoji":":newspaper:"})) 
+                return requests.post(response_url,data=json.dumps({"text":"Fatal Error"})) 
         else:
-            requests.post(response_url,data=json.dumps({"text":"search for a keyword","username": "slack-news", "icon_emoji":":newspaper:"})) 
+            requests.post(response_url,data=json.dumps({"text":"search for a keyword"})) 
         return Response(), 200
     else:
         if request.args.get("keyword"):
@@ -168,14 +168,14 @@ def random_news():
         data = request.form
         cid = data.get("channel_id")
         response_url = data.get("response_url")
-        payload = {"text":"please wait (this operation can take a while)...","username": "slack-news", "icon_emoji":":newspaper:"}
+        payload = {"text":"please wait (this operation can take a while)..."}
         requests.post(response_url,data=json.dumps(payload))
         news = RandomNews(cid, response_url, client)
         thr = Thread(target=news.go)
         try:
             thr.start()
         except:
-            return requests.post(response_url,data=json.dumps({"text":"Fatal Error","username": "slack-news", "icon_emoji":":newspaper:"})) 
+            return requests.post(response_url,data=json.dumps({"text":"Fatal Error"})) 
         return Response(), 200
     else:
         news = RandomNews(None, None, None)
@@ -203,16 +203,16 @@ def urlSearch():
         input_url = data.get("text")
         response_url = data.get("response_url")
         if input_url.strip() != "":
-            payload = {"text":"please wait...","username": "slack-news", "icon_emoji":":newspaper:"}
+            payload = {"text":"please wait..."}
             requests.post(response_url,data=json.dumps(payload))
             news = ByURL(input_url, cid, response_url, client)
             thr = Thread(target=news.go)
             try:
                 thr.start()
             except:
-                return requests.post(response_url,data=json.dumps({"text":"Fatal Error","username": "slack-news", "icon_emoji":":newspaper:"})) 
+                return requests.post(response_url,data=json.dumps({"text":"Fatal Error"})) 
         else:
-            requests.post(response_url,data=json.dumps({"text":"please search for an url","username": "slack-news", "icon_emoji":":newspaper:"})) 
+            requests.post(response_url,data=json.dumps({"text":"please search for an url"})) 
         return Response(), 200
     else:
         if request.args.get("url"):
@@ -234,5 +234,5 @@ def urlSearch():
             return Response(json.dumps({"Error":"No URL"})), 404
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
     
