@@ -4,3 +4,4 @@ flask
 slackeventsapi
 requests
 bs4
+gunicorn
