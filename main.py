@@ -87,7 +87,6 @@ def check_reaction(payload):
 def test():
     if request.method == "POST":
         data = request.form
-        print(data)
         cid = data.get("channel_id")
         cname = data.get("channel_name")
         client.chat_postMessage(channel=cid, text=f"This app is working properly in #{cname}", icon_emoji=":newspaper:")

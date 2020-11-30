@@ -99,7 +99,6 @@ class ByURL(NewsMessage):
 
     def go_thread(self):
         self.url_info()
-        print(self.info)
         if self.info.get("Error") == "Error":
             return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="Error fetching the url", icon_emoji=":newspaper:")
         if self.text != None and self.text != "":
