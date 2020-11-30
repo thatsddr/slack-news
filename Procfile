@@ -1,2 +1,2 @@
-web: gunicorn ranti:app
-worker: python worker.py
+web: gunicorn sfn:app
+worker: python main.py
