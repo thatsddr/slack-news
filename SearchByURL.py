@@ -5,7 +5,7 @@ import requests
 import json
 
 class ByURL(NewsMessage):
-    def __init__(self, input_url, cid, response_url, client):
+    def __init__(self, input_url, cid, response_url, client, thread=None):
         super().__init__()
         self.input_url = input_url
         self.url = ""
@@ -15,6 +15,7 @@ class ByURL(NewsMessage):
         self.text = ""
         self.info = {}
         self.exclude = []
+        self.thread = thread
     
     def format(self):
         return [{
@@ -95,6 +96,23 @@ class ByURL(NewsMessage):
                 return self.client.chat_postMessage(channel=self.cid, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
         else:
             return requests.post(url=self.response_url,data=json.dumps({"text":"Something went wrong...","username": "slack-news", "icon_emoji":":newspaper:"}))
+
+    def go_thread(self):
+        self.url_info()
+        print(self.info)
+        if self.info.get("Error") == "Error":
+            return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="Error fetching the url", icon_emoji=":newspaper:")
+        if self.text != None and self.text != "":
+            self.url = f"https://news.google.com/rss/search?q={quote(self.text)}&hl=en-US&gl=US&ceid=US:en"
+            self.get_items()
+            final = self.get_results(exclude=self.exclude)
+            if final == None:
+                return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="No matches in other sources", icon_emoji=":newspaper:")
+            if final["len"] > 0:
+                blocks = self.format()
+                return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, icon_emoji=":newspaper:", blocks=blocks, username="LATEST NEWS")
+        else:
+            return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="Something went wrong...", icon_emoji=":newspaper:")
 
     def web(self):
         self.url_info()

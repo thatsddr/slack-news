@@ -47,7 +47,7 @@ class HelpMessage:
             blocks.append({"type": "section",
                 "text" : {
                     "type": "mrkdwn",
-                    "text":(f"Tip: you can react with :x: to delete messages sent by this bot.")
+                    "text":(f"Tips:\n1)You can react with :x: to delete messages sent by this bot.\n2)Slash commands are not supported in threads.\n3)You can mention this bot in a thread where the main post has one or more links in it to search them.")
                 }})
         elif self.possible_commands.get(self.command) != None:
             blocks = [{"type": "section",
@@ -67,7 +67,7 @@ class HelpMessage:
                 {"type": "section",
                 "text" : {
                     "type": "mrkdwn",
-                    "text":(f"Tip: you can react with :x: to delete messages sent by this bot.")
+                    "text":(f"Tips:\n1)You can react with :x: to delete messages sent by this bot.\n2)Slash commands are not supported in threads.\n3)You can mention this bot in a thread where the main post has one or more links in it to search them.")
                 }}
                 ]
         else:

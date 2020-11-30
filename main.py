@@ -1,5 +1,6 @@
 import slack
 import os
+import re
 import json
 import requests
 import concurrent.futures
@@ -24,6 +25,46 @@ slack_event_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'],'/slack/eve
 client = slack.WebClient(token=os.environ['SLACK_TOKEN'])
 BOT_ID = client.api_call("auth.test")["user_id"]
 
+#new messages handled here
+@slack_event_adapter.on('message')
+def message(payload):
+    event = payload.get('event', {})
+    text = event.get("text", {})
+    cid = event.get("channel")
+    thread_ts = event.get("thread_ts", None)
+    def check_url(string):    
+        regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
+        url = re.findall(regex,string)       
+        return [x[0] for x in url]
+    if '<@U01EWL1LP1D>' in text and thread_ts:
+        res = client.conversations_history(channel=cid, latest=thread_ts, inclusive=True,limit=1)
+        message_str = res.get('messages', [{}])[0].get("text", None)
+        raw_urls = (check_url(message_str))
+        urls = []
+        if raw_urls:
+            for url in raw_urls:
+                index = None
+                try:
+                    index = url.index("|")
+                except:
+                    index = None
+                if index!=None:
+                    temp = url[:index]
+                    if temp not in urls:
+                        urls.append(temp)
+                else:
+                    if url not in urls:
+                        urls.append(url)
+            for url in urls:
+                news = ByURL(url, cid, None, client, thread=thread_ts)
+                thr = Thread(target=news.go_thread)
+                try:
+                    thr.start()
+                except:
+                    return client.chat_postMessage(channel=cid, thread_ts=thread_ts, text="Something went wrong...", icon_emoji=":newspaper:")
+        else:
+            return client.chat_postMessage(channel=cid, thread_ts=thread_ts, text="No URL detected", icon_emoji=":newspaper:")
+
 
 #reaction handler that deletes a message if it was sent from the bot and the user reacts with :x:
 @slack_event_adapter.on('reaction_added')
@@ -46,6 +87,7 @@ def check_reaction(payload):
 def test():
     if request.method == "POST":
         data = request.form
+        print(data)
         cid = data.get("channel_id")
         cname = data.get("channel_name")
         client.chat_postMessage(channel=cid, text=f"This app is working properly in #{cname}", icon_emoji=":newspaper:")
