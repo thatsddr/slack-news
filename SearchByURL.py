@@ -4,6 +4,7 @@ from urllib.parse import quote
 import requests
 import json
 
+#class to search by URL
 class ByURL(NewsMessage):
     def __init__(self, input_url, cid, response_url, client, thread=None):
         super().__init__()
@@ -17,6 +18,7 @@ class ByURL(NewsMessage):
         self.exclude = []
         self.thread = thread
     
+    #method that formats to markdows
     def format(self):
         return [{
             "type": "section",
@@ -42,6 +44,7 @@ class ByURL(NewsMessage):
             }
         }]
     
+    #method that gets info on the url
     def url_info(self):
         headers = headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}
         res = {}
@@ -53,6 +56,7 @@ class ByURL(NewsMessage):
             self.info = {"Error": "Error"}
             return self.info
 
+        #get the title of the article
         soup = bs(res.content, "html.parser")
         self.text = soup.find_all("h1")[0].get_text()
 
@@ -69,6 +73,7 @@ class ByURL(NewsMessage):
         except:
             toSearch = baseURL
 
+        #if is supported give info otherwise just say it is unsupported
         supportedUrl = self.URLS.get(toSearch)
         if supportedUrl != None:
             self.info["supported"] = True
@@ -80,6 +85,7 @@ class ByURL(NewsMessage):
             self.info["name"] = "unknown"
             self.info["bias"] = "unknown, unsupported source"
 
+    #return a message after getting and formatting the data
     def go(self):
         self.url_info()
         if self.info.get("Error") == "Error":
@@ -97,6 +103,7 @@ class ByURL(NewsMessage):
         else:
             return requests.post(url=self.response_url,data=json.dumps({"text":"Something went wrong..."}))
 
+    #return a message in a thread after getting and formatting the data
     def go_thread(self):
         self.url_info()
         if self.info.get("Error") == "Error":
@@ -113,6 +120,7 @@ class ByURL(NewsMessage):
         else:
             return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="Something went wrong...",)
 
+    #return json after getting the data
     def web(self):
         self.url_info()
         if self.info.get("Error") == "Error":

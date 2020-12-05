@@ -3,6 +3,7 @@ from urllib.parse import quote
 import requests
 import json
 
+#class that searches news by keyword
 class ByKeyword(NewsMessage):
     def __init__(self, text, cid, response_url, client):
         super().__init__()
@@ -12,6 +13,7 @@ class ByKeyword(NewsMessage):
         self.response_url = response_url
         self.client = client
     
+    #mathod that formats in markdown
     def format(self):
         return [{
             "type": "section",
@@ -37,6 +39,7 @@ class ByKeyword(NewsMessage):
             }
         }]
 
+    #this method calls format and send a slack message with the news found
     def go(self):
         self.get_items()
         final = self.get_results()
@@ -46,7 +49,8 @@ class ByKeyword(NewsMessage):
         if final["len"] > 0:
             blocks = self.format()
             return self.client.chat_postMessage(channel=self.cid, blocks=blocks)
-        
+    
+    #this method returns some json with the news found
     def web(self):
         self.get_items()
         return self.get_results()

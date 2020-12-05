@@ -4,6 +4,7 @@ import requests
 import json
 import random
 
+#class to search random news
 class RandomNews(NewsMessage):
     def __init__(self, cid, response_url, client):
         super().__init__()
@@ -12,6 +13,7 @@ class RandomNews(NewsMessage):
         self.response_url = response_url
         self.client = client
     
+    #method that formats the data
     def format(self):
         return [{
             "type": "section",
@@ -37,6 +39,7 @@ class RandomNews(NewsMessage):
             }
         }]
 
+    #get a random title and search for it
     def get_data(self):
         self.get_items()
         random_news = self.findings[random.randint(0,len(self.findings) - 1)]
@@ -45,6 +48,7 @@ class RandomNews(NewsMessage):
         self.get_items()
         return self.get_results()
     
+    #method that checks if there are less than 2 sources
     def is_enough(self, data):
         if data == None:
                 return False
@@ -52,6 +56,7 @@ class RandomNews(NewsMessage):
             return False
         return True
 
+    #returns a slack message after getting and formatting the date
     def go(self):
         final = self.get_data()
         attempts = 0
@@ -64,7 +69,7 @@ class RandomNews(NewsMessage):
             blocks = self.format()
             return self.client.chat_postMessage(channel=self.cid, blocks=blocks)
 
-
+    #returns some json after getting the data
     def web(self):
         final = self.get_data()
         attempts = 0
