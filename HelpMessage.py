@@ -2,7 +2,8 @@ import json
 import requests 
 class HelpMessage:
     def __init__(self, cid, response_url, client, command=None):
-        self.baseURL = "localhost:5000"
+        #initialize some basic values
+        self.baseURL = "neutral-news.herokuapp.com"
         self.cid=cid
         self.response_url= response_url
         self.client = client
@@ -24,10 +25,12 @@ class HelpMessage:
                                         "api_example":f"{self.baseURL}/random-news"
                             }}
         self.command = command
+        #if a command is specified, only consider the text, not the /
         if self.command:
             if len(self.command) > 0:
                 self.command = self.command if self.command[0] != '/' else self.command[1:]
     
+    #this method just returns markdown, of either everything or just one, or returns an error if a non-existent command is specified
     def format(self):
         blocks = []
         if self.command == "":
@@ -75,12 +78,14 @@ class HelpMessage:
 
         return blocks
 
+    #this method calls format and send a slack message
     def go(self):
         blocks = self.format()
         if blocks == None:
             return None
         return self.client.chat_postMessage(channel=self.cid, blocks=blocks)
     
+    #this method returns some json of either one or all the commands
     def web(self):
         if self.command == None:
             return self.possible_commands
