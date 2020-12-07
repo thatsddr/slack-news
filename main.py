@@ -14,6 +14,7 @@ from SearchByKeyword import ByKeyword
 from SearchRandomNews import RandomNews
 from SearchByURL import ByURL
 from HelpMessage import HelpMessage
+from functions import check_url, clean_urls
 
 #dotenv configuration
 env_path = Path('.') / '.env'
@@ -33,11 +34,6 @@ def message(payload):
     text = event.get("text", {})
     cid = event.get("channel")
     thread_ts = event.get("thread_ts", None)
-    #function to check if a string contains a URL
-    def check_url(string):    
-        regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
-        url = re.findall(regex,string)       
-        return [x[0] for x in url]
     #check if the bot is mentioned in a thread
     if BOT_ID in text and thread_ts:
         #if yes, get the original message and try to get URL(s) out of it
@@ -47,19 +43,7 @@ def message(payload):
         urls = []
         #if there are URLSs, clean the link from the markdown stuff
         if raw_urls:
-            for url in raw_urls:
-                index = None
-                try:
-                    index = url.index("|")
-                except:
-                    index = None
-                if index!=None:
-                    temp = url[:index]
-                    if temp not in urls:
-                        urls.append(temp)
-                else:
-                    if url not in urls:
-                        urls.append(url)
+            urls = clean_urls(raw_urls)
             #for each of the clean URLs, search news by URL
             for url in urls:
                 news = ByURL(url, cid, None, client, thread=thread_ts)
@@ -86,7 +70,6 @@ def check_reaction(payload):
             )
         except:
             pass
-
 
 #slack slash commands
 
@@ -279,5 +262,4 @@ def urlSearch():
             return Response(json.dumps({"Error":"No URL"})), 404
 
 if __name__ == "__main__":
-    app.run()
-    
+    app.run()  
