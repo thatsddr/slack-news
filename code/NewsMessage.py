@@ -15,7 +15,7 @@ class NewsMessage:
         self.bias_covered = []
         self.URLS = []
         #get the supported urls
-        with open("urls.json", "r") as u:
+        with open("./urls.json", "r") as u:
             try:
                 self.URLS = json.load(u)
                 u.close()

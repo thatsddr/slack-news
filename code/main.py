@@ -17,7 +17,7 @@ from HelpMessage import HelpMessage
 from functions import check_url, clean_urls
 
 #dotenv configuration
-env_path = Path('.') / '.env'
+env_path = Path('./') / '.env'
 load_dotenv(dotenv_path=env_path)
 
 #flask initialization and slack api implementation
