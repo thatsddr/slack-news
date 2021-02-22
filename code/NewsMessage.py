@@ -77,12 +77,12 @@ class NewsMessage:
                 self.links += f"from the {k}: <{link}|{name}>\n"
 
             # get a random main title    
-            ok = False
-            while not ok:
+            found = False
+            while not found:
                 bias_type = self.bias_covered[random.randint(0, len(self.bias_covered)-1)]
                 if self.results.get(bias_type):
                     self.main_title = self.results[bias_type]["title"]
-                    ok = True
+                    found = True
             
             #return the findings
             return {"links":self.links, "main_title":self.main_title, "len":len(self.results), "raw_res":self.results}
