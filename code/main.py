@@ -32,7 +32,7 @@ client = slack.WebClient(token=os.environ["SLACK_TOKEN"])
 BOT_ID = client.api_call("auth.test")["user_id"]
 
 # cache initialization
-r = redis.Redis(host='localhost', port=6379, db=0)
+r = redis.from_url(os.environ.get("REDIS_URL"))
 
 # slack-specific events:
 
