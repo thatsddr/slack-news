@@ -4,7 +4,7 @@ import re
 import json
 import requests
 import concurrent.futures
-from walrus import *
+import redis
 from urllib.parse import unquote
 from slackeventsapi import SlackEventAdapter
 from threading import Thread
@@ -32,8 +32,7 @@ client = slack.WebClient(token=os.environ["SLACK_TOKEN"])
 BOT_ID = client.api_call("auth.test")["user_id"]
 
 # cache initialization
-db = Database()
-cache = db.cache()
+r = redis.Redis(host='localhost', port=6379, db=0)
 
 # slack-specific events:
 
@@ -205,8 +204,8 @@ def apiKeyword():
     if request.args.get("keyword"):
         keyword = unquote(request.args.get("keyword"))
         # if the result is cached, return it
-        if cache.get(keyword):
-            return Response(cache.get(keyword)), 200
+        if r.get(keyword):
+            return Response(r.get(keyword)), 200
         # initialize the class
         news = ByKeyword(keyword, None, None, None)
         raw = {}
@@ -222,7 +221,7 @@ def apiKeyword():
             # get the data
             data = raw.get("raw_res")
             # cache the result
-            cache.set(keyword, json.dumps(data), 3600)
+            r.set(keyword, json.dumps(data), 3600)
             # return the result
             return Response(json.dumps(data)), 200
         else:
@@ -262,8 +261,8 @@ def apiURL():
     if request.args.get("url"):
         _url = unquote(request.args.get("url"))
         # if the result is cached, return it
-        if cache.get(_url):
-            return Response(cache.get(_url)), 200
+        if r.get(_url):
+            return Response(r.get(_url)), 200
         # initialize the class
         news = ByURL(_url, None, None, None)
         raw = {}
@@ -277,6 +276,9 @@ def apiURL():
         # if there is data only return the non formatted data
         if raw:
             data = raw.get("raw_res")
+            # cache the result
+            r.set(_url, json.dumps(data), 3600)
+            # return the result
             return Response(json.dumps(data)), 200
         else:
             return Response(json.dumps({"Error": "No Results"})), 404
