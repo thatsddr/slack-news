@@ -5,18 +5,23 @@ import json
 import requests
 import concurrent.futures
 import redis
+from six.moves.urllib.request import urlopen
+from functools import wraps
+from jose import jwt
 from urllib.parse import unquote
 from slackeventsapi import SlackEventAdapter
 from threading import Thread
 from pathlib import Path
 from dotenv import load_dotenv
-from flask import Flask, request, Response
-from flask_cors import CORS
+from flask import Flask, request, Response, jsonify, _request_ctx_stack
+from flask_cors import CORS, cross_origin
 from SearchByKeyword import ByKeyword
 from SearchRandomNews import RandomNews
 from SearchByURL import ByURL
 from HelpMessage import HelpMessage
 from functions import check_url, clean_urls
+from Auth import get_token_auth_header
+
 
 # dotenv configuration
 env_path = Path("./") / ".env"
@@ -33,6 +38,78 @@ BOT_ID = client.api_call("auth.test")["user_id"]
 
 # cache initialization
 r = redis.from_url(os.environ.get("REDIS_URL"))
+
+#error handling
+AUTH0_DOMAIN = 'ddr.eu.auth0.com'
+API_AUDIENCE = "https://neutral-news.herokuapp.com/api/identifier"
+ALGORITHMS = ["RS256"]
+class AuthError(Exception):
+    def __init__(self, error, status_code):
+        self.error = error
+        self.status_code = status_code
+
+@app.errorhandler(AuthError)
+def handle_auth_error(ex):
+    response = jsonify(ex.error)
+    response.status_code = ex.status_code
+    return response
+def requires_auth(f):
+    """Determines if the Access Token is valid
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = get_token_auth_header(AuthError)
+        jsonurl = urlopen("https://"+AUTH0_DOMAIN+"/.well-known/jwks.json")
+        jwks = json.loads(jsonurl.read())
+        unverified_header = jwt.get_unverified_header(token)
+        rsa_key = {}
+        for key in jwks["keys"]:
+            if key["kid"] == unverified_header["kid"]:
+                rsa_key = {
+                    "kty": key["kty"],
+                    "kid": key["kid"],
+                    "use": key["use"],
+                    "n": key["n"],
+                    "e": key["e"]
+                }
+        if rsa_key:
+            try:
+                payload = jwt.decode(
+                    token,
+                    rsa_key,
+                    algorithms=ALGORITHMS,
+                    audience=API_AUDIENCE,
+                    issuer="https://"+AUTH0_DOMAIN+"/"
+                )
+            except jwt.ExpiredSignatureError:
+                raise AuthError({"code": "token_expired",
+                                "description": "token is expired"}, 401)
+            except jwt.JWTClaimsError:
+                raise AuthError({"code": "invalid_claims",
+                                "description":
+                                    "incorrect claims,"
+                                    "please check the audience and issuer"}, 401)
+            except Exception:
+                raise AuthError({"code": "invalid_header",
+                                "description":
+                                    "Unable to parse authentication"
+                                    " token."}, 401)
+
+            _request_ctx_stack.top.current_user = payload
+            return f(*args, **kwargs)
+        raise AuthError({"code": "invalid_header",
+                        "description": "Unable to find appropriate key"}, 401)
+    return decorated
+#token validation
+def requires_scope(required_scope):
+    token = get_token_auth_header(AuthError)
+    unverified_claims = jwt.get_unverified_claims(token)
+    if unverified_claims.get("scope"):
+            token_scopes = unverified_claims["scope"].split()
+            for token_scope in token_scopes:
+                if token_scope == required_scope:
+                    return True
+    return False
 
 # slack-specific events:
 
@@ -197,8 +274,15 @@ def urlSearch():
 
 #API
 
+#auth0 identifier
+@app.route("/api/identifier")
+def identifier():
+    return Response(), 200
+
 # search by keyword from  web API
 @app.route("/api/search-keyword", methods=["GET"])
+@cross_origin(headers=["Content-Type", "Authorization"])
+@requires_auth
 def apiKeyword():
     # in order to return some json, check if there is a keyword
     if request.args.get("keyword"):
@@ -232,6 +316,8 @@ def apiKeyword():
 
 # random news from web API
 @app.route("/api/random", methods=["GET"])
+@cross_origin(headers=["Content-Type", "Authorization"])
+@requires_auth
 def apiRandom():
     # initialize the class for the API
     news = RandomNews(None, None, None)
@@ -256,6 +342,8 @@ def apiRandom():
 
 # search by URL from web API
 @app.route("/api/search-url", methods=["GET"])
+@cross_origin(headers=["Content-Type", "Authorization"])
+@requires_auth
 def apiURL():
     # in order to return some json, check if there is a specified URL
     if request.args.get("url"):
@@ -284,6 +372,7 @@ def apiURL():
             return Response(json.dumps({"Error": "No Results"})), 404
     else:
         return Response(json.dumps({"Error": "No URL"})), 404
+
 
 
 if __name__ == "__main__":
