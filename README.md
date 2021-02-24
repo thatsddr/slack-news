@@ -7,7 +7,7 @@ Neutral News is a slack app and a API that searches the web for the same news by
 
 If you want to install this app locally, these are the steps you need to foolow:
 
-Prerequisites: python3.8 (probably works with python3.9 as well) and pip3
+Prerequisites: python3.8 (probably works with python3.9 as well) and pip3.
 
 1. Download the app and install the requirements with these commands:
    ```
