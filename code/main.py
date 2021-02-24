@@ -22,7 +22,6 @@ from HelpMessage import HelpMessage
 from functions import check_url, clean_urls
 from Auth import get_token_auth_header
 
-
 # dotenv configuration
 env_path = Path("./") / ".env"
 load_dotenv(dotenv_path=env_path)
@@ -39,7 +38,7 @@ BOT_ID = client.api_call("auth.test")["user_id"]
 # cache initialization
 r = redis.from_url(os.environ.get("REDIS_URL"))
 
-#error handling
+#auth0 error handling. Standard code required by auth0 in python.
 AUTH0_DOMAIN = 'ddr.eu.auth0.com'
 API_AUDIENCE = "https://neutral-news.herokuapp.com/api/identifier"
 ALGORITHMS = ["RS256"]
@@ -100,7 +99,8 @@ def requires_auth(f):
         raise AuthError({"code": "invalid_header",
                         "description": "Unable to find appropriate key"}, 401)
     return decorated
-#token validation
+
+#auth0 token validation
 def requires_scope(required_scope):
     token = get_token_auth_header(AuthError)
     unverified_claims = jwt.get_unverified_claims(token)
@@ -113,9 +113,10 @@ def requires_scope(required_scope):
 
 # slack-specific events:
 
-# check if the bot is mentioned in a thread every time a message is posted
 @slack_event_adapter.on("message")
 def message(payload):
+    """check if the bot is mentioned in a thread every time a message is posted
+    """
     # get basic information
     event = payload.get("event", {})
     text = event.get("text", {})
@@ -133,9 +134,16 @@ def message(payload):
         # if there are URLSs, clean the link from the markdown stuff
         if raw_urls:
             urls = clean_urls(raw_urls)
+            #check if some of the urls are cached
+            for url in urls:
+                if (r.get("markdown-"+url)):
+                    client.chat_postMessage(channel=cid, thread_ts=thread_ts, blocks=json.loads(r.get("markdown-"+url)))
+                    #remove the url so that it w
+                    urls.remove(url)
+
             # for each of the clean URLs, search news by URL
             for url in urls:
-                news = ByURL(url, cid, None, client, thread=thread_ts)
+                news = ByURL(url, cid, None, client, thread=thread_ts, cache=r)
                 thr = Thread(target=news.go_thread)
                 try:
                     thr.start()
@@ -148,9 +156,10 @@ def message(payload):
                 channel=cid, thread_ts=thread_ts, text="No URL detected"
             )
 
-# reaction handler that deletes a message if it was sent from the bot and the user reacts with :x:
 @slack_event_adapter.on("reaction_added")
 def check_reaction(payload):
+    """reaction handler that deletes a message if it was sent from the bot and the user reacts with :x:
+    """
     # get basic info
     event = payload.get("event", {})
     channel_id = event.get("item", {}).get("channel")
@@ -161,12 +170,12 @@ def check_reaction(payload):
         except:
             pass
 
-
 # slack slash commands:
 
-# test command to check if the bot is installed
 @app.route("/test", methods=["POST"])
 def test():
+    """test command to check if the bot is installed in a channel
+    """
     # get basic info
     data = request.form
     cid = data.get("channel_id")
@@ -177,9 +186,11 @@ def test():
     )
     return Response(), 200
 
-# help command
+# 
 @app.route("/help", methods=["POST"])
 def help():
+    """help command, returns a list of available commands.
+    """
     # Send slack response if the method is POST or return some json if the method is GET
     # get basic info
     data = request.form
@@ -196,9 +207,10 @@ def help():
         return requests.post(response_url, data=json.dumps({"text": "Fatal Error"}))
     return Response(), 200
 
-# search news by keyword
 @app.route("/search-news", methods=["POST"])
 def keywordSearch():
+    """search news by keyword
+    """
     # Send slack response if the method is POST or return some json if the method is GET
     # get basic data
     data = request.form
@@ -207,11 +219,14 @@ def keywordSearch():
     response_url = data.get("response_url")
     # if there is a keyword, search for it
     if txt.strip() != "":
-        # tell the user he'll gwt his news
+        # tell the user he'll get his news
         payload = {"text": "please wait..."}
         requests.post(response_url, data=json.dumps(payload))
+        #chck if the news is cached and if yes return it
+        if r.get("markdown-"+txt):
+            return client.chat_postMessage(channel=cid, blocks=json.loads(r.get("markdown-"+txt)))
         # initialize the class
-        news = ByKeyword(txt, cid, response_url, client)
+        news = ByKeyword(txt, cid, response_url, client, cache=r)
         thr = Thread(target=news.go)
         # try to execute the code, if it fails return an error
         try:
@@ -222,9 +237,10 @@ def keywordSearch():
         requests.post(response_url, data=json.dumps({"text": "search for a keyword"}))
     return Response(), 200
 
-# random news
 @app.route("/random-news", methods=["POST"])
 def random_news():
+    """returns random news
+    """
     # Send slack response if the method is POST or return some json if the method is GET
     # get basic info
     data = request.form
@@ -243,9 +259,10 @@ def random_news():
         return requests.post(response_url, data=json.dumps({"text": "Fatal Error"}))
     return Response(), 200
 
-# searches for news by url
 @app.route("/search-url", methods=["POST"])
 def urlSearch():
+    """searches for news by url
+    """
     # Send slack response if the method is POST or return some json if the method is GET
     # get basic info
     data = request.form
@@ -257,8 +274,11 @@ def urlSearch():
         # tell the suer he'll get his response
         payload = {"text": "please wait..."}
         requests.post(response_url, data=json.dumps(payload))
+        #check if the news is cached and if yes return it
+        if r.get("markdown-"+input_url):
+            return client.chat_postMessage(channel=cid, blocks=json.loads(r.get("markdown-"+input_url)))
         # initialize the class
-        news = ByURL(input_url, cid, response_url, client)
+        news = ByURL(input_url, cid, response_url, client, cache=r)
         thr = Thread(target=news.go)
         # try to respond
         try:
@@ -271,19 +291,20 @@ def urlSearch():
         )
     return Response(), 200
 
-
 #API
 
-#auth0 identifier
 @app.route("/api/identifier")
 def identifier():
+    """auth0 identifier
+    """
     return Response(), 200
 
-# search by keyword from  web API
 @app.route("/api/search-keyword", methods=["GET"])
 @cross_origin(headers=["Content-Type", "Authorization"])
 @requires_auth
 def apiKeyword():
+    """search by keyword from  web API
+    """
     # in order to return some json, check if there is a keyword
     if request.args.get("keyword"):
         keyword = unquote(request.args.get("keyword"))
@@ -313,12 +334,12 @@ def apiKeyword():
     else:
         return Response(json.dumps({"Error": "No keyword"})), 404
 
-
-# random news from web API
 @app.route("/api/random", methods=["GET"])
 @cross_origin(headers=["Content-Type", "Authorization"])
 @requires_auth
 def apiRandom():
+    """random news from web API
+    """
     # initialize the class for the API
     news = RandomNews(None, None, None)
     raw = {}
@@ -339,12 +360,12 @@ def apiRandom():
     else:
         return Response(json.dumps({"Error": "Maximum attempts reached"})), 504
 
-
-# search by URL from web API
 @app.route("/api/search-url", methods=["GET"])
 @cross_origin(headers=["Content-Type", "Authorization"])
 @requires_auth
 def apiURL():
+    """search by URL from web API
+    """
     # in order to return some json, check if there is a specified URL
     if request.args.get("url"):
         _url = unquote(request.args.get("url"))
@@ -372,7 +393,6 @@ def apiURL():
             return Response(json.dumps({"Error": "No Results"})), 404
     else:
         return Response(json.dumps({"Error": "No URL"})), 404
-
 
 
 if __name__ == "__main__":
