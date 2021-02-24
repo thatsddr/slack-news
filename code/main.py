@@ -137,7 +137,7 @@ def message(payload):
             #check if some of the urls are cached
             for url in urls:
                 if (r.get("markdown-"+url)):
-                    client.chat_postMessage(channel=cid, thread_ts=thread_ts, blocks=json.loads(r.get("markdown-"+url)))
+                    client.chat_postMessage(channel=cid, thread_ts=thread_ts, blocks=r.get("markdown-"+url))
                     #remove the url so that it w
                     urls.remove(url)
 
@@ -224,7 +224,7 @@ def keywordSearch():
         requests.post(response_url, data=json.dumps(payload))
         #chck if the news is cached and if yes return it
         if r.get("markdown-"+txt):
-            return client.chat_postMessage(channel=cid, blocks=json.loads(r.get("markdown-"+txt)))
+            return client.chat_postMessage(channel=cid, blocks=r.get("markdown-"+txt))
         # initialize the class
         news = ByKeyword(txt, cid, response_url, client, cache=r)
         thr = Thread(target=news.go)
@@ -276,7 +276,7 @@ def urlSearch():
         requests.post(response_url, data=json.dumps(payload))
         #check if the news is cached and if yes return it
         if r.get("markdown-"+input_url):
-            return client.chat_postMessage(channel=cid, blocks=json.loads(r.get("markdown-"+input_url)))
+            return client.chat_postMessage(channel=cid, blocks=r.get("markdown-"+input_url))
         # initialize the class
         news = ByURL(input_url, cid, response_url, client, cache=r)
         thr = Thread(target=news.go)

@@ -106,7 +106,7 @@ class ByURL(NewsMessage):
                 blocks = self.format()
                 #set cache
                 if self.cache:
-                    self.cache.set("markdown-"+self.input_url, json.dumps(blocks), 3600)
+                    self.cache.set("markdown-"+self.input_url, blocks, 3600)
                 #post the message in a thread
                 return self.client.chat_postMessage(channel=self.cid, blocks=blocks)
         else:
@@ -128,7 +128,7 @@ class ByURL(NewsMessage):
                 blocks = self.format()
                 #set cache
                 if self.cache:
-                    self.cache.set("markdown-"+self.input_url, json.dumps(blocks), 3600)
+                    self.cache.set("markdown-"+self.input_url, blocks, 3600)
                 #post the message in a thread
                 return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, blocks=blocks)
         else:
