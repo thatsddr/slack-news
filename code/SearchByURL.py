@@ -6,7 +6,7 @@ import json
 
 #class to search by URL
 class ByURL(NewsMessage):
-    def __init__(self, input_url, cid, response_url, client, thread=None):
+    def __init__(self, input_url, cid, response_url, client, thread=None, cache=None):
         super().__init__()
         self.input_url = input_url
         self.url = ""
@@ -17,6 +17,7 @@ class ByURL(NewsMessage):
         self.info = {}
         self.exclude = []
         self.thread = thread
+        self.cache= cache
     
     #method that formats to markdows
     def format(self):
@@ -99,6 +100,10 @@ class ByURL(NewsMessage):
                 return requests.post(url=self.response_url,data=json.dumps({"text":f"No results for {self.text}"})) 
             if final["len"] > 0:
                 blocks = self.format()
+                #set cache
+                if self.cache:
+                    self.cache.set("markdown-"+self.input_url, json.dumps(blocks), 3600)
+                #post the message in a thread
                 return self.client.chat_postMessage(channel=self.cid, blocks=blocks)
         else:
             return requests.post(url=self.response_url,data=json.dumps({"text":"Something went wrong..."}))
@@ -116,6 +121,10 @@ class ByURL(NewsMessage):
                 return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="No matches in other sources")
             if final["len"] > 0:
                 blocks = self.format()
+                #set cache
+                if self.cache:
+                    self.cache.set("markdown-"+self.input_url, json.dumps(blocks), 3600)
+                #post the message in a thread
                 return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, blocks=blocks)
         else:
             return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="Something went wrong...",)

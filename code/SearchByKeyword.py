@@ -5,13 +5,14 @@ import json
 
 #class that searches news by keyword
 class ByKeyword(NewsMessage):
-    def __init__(self, text, cid, response_url, client):
+    def __init__(self, text, cid, response_url, client, cache=None):
         super().__init__()
         self.text = text
         self.url = f"https://news.google.com/rss/search?q={quote(self.text)}&hl=en-US&gl=US&ceid=US:en"
         self.cid = cid
         self.response_url = response_url
         self.client = client
+        self.cache = cache
     
     #mathod that formats in markdown
     def format(self):
@@ -48,6 +49,10 @@ class ByKeyword(NewsMessage):
 
         if final["len"] > 0:
             blocks = self.format()
+            #set cache
+            if self.cache:
+                self.cache.set("markdown-"+self.text, json.dumps(blocks), 3600)
+            #post result
             return self.client.chat_postMessage(channel=self.cid, blocks=blocks)
     
     #this method returns some json with the news found
