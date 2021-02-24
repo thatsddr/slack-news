@@ -19,8 +19,8 @@ Prerequisites: python3.8 (probably works with python3.9 as well) and pip3
 3.
    * If you want to use the app in slack, make sure to be the admin of the workspace you want to install the app in, then go to https://api.slack.com, and configure a new app (if you don't know how to do it, you can start at https://api.slack.com/authentication/basics). After configuring the app, go to the .env file and add these 2 variables with the variables retrieved from the configuration: ```SLACK_TOKEN``` and ```SIGNING_SECRET```
    * If you want to use the app as an API you have 2 options: 
-      1. If you don't want to use Auth0 remove every line that contains ```@requires_auth``` in the main.py file, the functions that will not be used anymore, and the Auth.py file.
-      2. Otherwise, if you want to use Auth0, configure a new app on https://manage.auth0.com and then change the values of ```AUTH0_DOMAIN``` and ```API_AUDIENCE``` with those of your application at lines 42 and 43 in the main.py file.
+      1. If you don't want to use AUTH0 remove every line that contains ```@requires_auth``` in the main.py file, the functions that will not be used anymore, and the Auth.py file.
+      2. Otherwise, if you want to use AUTH0, configure a new app on https://manage.auth0.com and then change the values of ```AUTH0_DOMAIN``` and ```API_AUDIENCE``` with those of your application at lines 42 and 43 in the main.py file.
 4. run ```python3 code/main.py``` to start a development server.
 
 ## Usage
@@ -34,6 +34,7 @@ Once the app is installed in the workspace, you can use the /help command to get
 The API has the following endpoints:
 
 * neutral-news.herokuapp.com/api/identifier
+
 Used as AUTH0 API Audience, can also be used to check if a token is valid. Returns 200 or an authentication error.
 
 * neutral-news.herokuapp.com/api/random
