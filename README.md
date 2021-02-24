@@ -1,7 +1,7 @@
 # Neutral News
 Neutral News is a slack app and a API that searches the web for the same news by sources with different political biases (accoridng to the [Media Bias Chart](https://www.adfontesmedia.com/static-mbc/)) and returns one article for each kind of bias (left, center, and right).
 
->This app is not published as an API nor a slack app. However, if you have a token or know how to obtain one, the app is running at this link: (neutral-news.herokuapp.com)[neutral-news.herokuapp.com].
+>This app is not published as an API nor a slack app. However, if you have a token or know how to obtain one, the app is running at this link: neutral-news.herokuapp.com.
 
 ## Installation
 
