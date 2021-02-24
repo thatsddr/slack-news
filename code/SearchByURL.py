@@ -4,8 +4,9 @@ from urllib.parse import quote
 import requests
 import json
 
-#class to search by URL
 class ByURL(NewsMessage):
+    """class that handles searches by URL
+    """
     def __init__(self, input_url, cid, response_url, client, thread=None, cache=None):
         super().__init__()
         self.input_url = input_url
@@ -19,8 +20,9 @@ class ByURL(NewsMessage):
         self.thread = thread
         self.cache= cache
     
-    #method that formats to markdows
     def format(self):
+        """method that formats to markdows
+        """
         return [{
             "type": "section",
             "text" : {
@@ -45,8 +47,9 @@ class ByURL(NewsMessage):
             }
         }]
     
-    #method that gets info on the url
     def url_info(self):
+        """method that gets info on the url
+        """
         headers = headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}
         res = {}
         if self.input_url[0:8] != "https://" and self.input_url[0:7] != "http://":
@@ -86,8 +89,9 @@ class ByURL(NewsMessage):
             self.info["name"] = "unknown"
             self.info["bias"] = "unknown, unsupported source"
 
-    #return a message after getting and formatting the data
     def go(self):
+        """return a message after getting and formatting the data
+        """
         self.url_info()
         if self.info.get("Error") == "Error":
             return requests.post(url=self.response_url,data=json.dumps({"text":f"No results for {self.input_url}"})) 
@@ -108,8 +112,9 @@ class ByURL(NewsMessage):
         else:
             return requests.post(url=self.response_url,data=json.dumps({"text":"Something went wrong..."}))
 
-    #return a message in a thread after getting and formatting the data
     def go_thread(self):
+        """return a message in a thread after getting and formatting the data
+        """
         self.url_info()
         if self.info.get("Error") == "Error":
             return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="Error fetching the url")
@@ -129,8 +134,9 @@ class ByURL(NewsMessage):
         else:
             return self.client.chat_postMessage(channel=self.cid, thread_ts=self.thread, text="Something went wrong...",)
 
-    #return json after getting the data
     def web(self):
+        """return json after getting the data
+        """
         self.url_info()
         if self.info.get("Error") == "Error":
             return None

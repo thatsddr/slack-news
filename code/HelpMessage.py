@@ -30,8 +30,9 @@ class HelpMessage:
             if len(self.command) > 0:
                 self.command = self.command if self.command[0] != '/' else self.command[1:]
     
-    #this method just returns markdown, of either everything or just one, or returns an error if a non-existent command is specified
     def format(self):
+        """this method just returns markdown, of either everything or just one, or returns an error if a non-existent command is specified
+        """
         blocks = []
         if self.command == "":
             blocks.append({"type": "section",
@@ -78,15 +79,17 @@ class HelpMessage:
 
         return blocks
 
-    #this method calls format and send a slack message
     def go(self):
+        """this method calls format and send a slack message
+        """
         blocks = self.format()
         if blocks == None:
             return None
         return self.client.chat_postMessage(channel=self.cid, blocks=blocks)
     
-    #this method returns some json of either one or all the commands
     def web(self):
+        """this method returns some json of either one or all the commands
+        """
         if self.command == None:
             return self.possible_commands
         elif self.possible_commands.get(self.command) != None:

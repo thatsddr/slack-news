@@ -3,8 +3,9 @@ from bs4 import BeautifulSoup as bs
 import random
 import json
 
-#class wirh common properties for all the other news-related classes (not the help one)
 class NewsMessage:
+    """class wirh common properties for all the other news-related classes (not the help one)
+    """
     def __init__(self):
         #initialize some basic variables
         self.findings = []
@@ -22,8 +23,9 @@ class NewsMessage:
             except Exception:
                 raise (Exception)
         
-    #this method returns a list of dictionaries with all the news
     def get_items(self):
+        """this method returns a list of dictionaries with all the news
+        """
         headers = headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}
         res = {}
         #try to rech the specified URL
@@ -45,8 +47,9 @@ class NewsMessage:
         #return the array
         return self.findings
 
-    #this method filters the findings to only get relevant information
     def get_results(self, exclude = []):
+        """this method filters the findings to only get relevant information
+        """
         if self.findings == None:
             return None
         self.results = {}

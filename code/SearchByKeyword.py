@@ -3,8 +3,9 @@ from urllib.parse import quote
 import requests
 import json
 
-#class that searches news by keyword
 class ByKeyword(NewsMessage):
+    """class that handles searches by keyword
+    """
     def __init__(self, text, cid, response_url, client, cache=None):
         super().__init__()
         self.text = text
@@ -14,8 +15,9 @@ class ByKeyword(NewsMessage):
         self.client = client
         self.cache = cache
     
-    #mathod that formats in markdown
     def format(self):
+        """method that formats in markdown
+        """
         return [{
             "type": "section",
             "text" : {
@@ -40,13 +42,15 @@ class ByKeyword(NewsMessage):
             }
         }]
 
-    #this method calls format and send a slack message with the news found
     def go(self):
+        """this method calls format and send a slack message with the news found
+        """
         self.get_items()
         final = self.get_results()
+        #throw an error if there are no results
         if final == None:
             return requests.post(url=self.response_url,data=json.dumps({"text":"No results"})) 
-
+        #cahce and return value if there are results
         if final["len"] > 0:
             blocks = self.format()
             #set cache
@@ -55,7 +59,8 @@ class ByKeyword(NewsMessage):
             #post result
             return self.client.chat_postMessage(channel=self.cid, blocks=blocks)
     
-    #this method returns some json with the news found
     def web(self):
+        """this method returns some json with the news found
+        """
         self.get_items()
         return self.get_results()

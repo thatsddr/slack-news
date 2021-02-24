@@ -9,6 +9,7 @@ AUTH0_DOMAIN = 'ddr.eu.auth0.com'
 API_AUDIENCE = "https://neutral-news.herokuapp.com/api/identifier"
 ALGORITHMS = ["RS256"]
 
+#default Auth0 code
 def get_token_auth_header(AuthError):
     """Obtains the Access Token from the Authorization Header
     """
