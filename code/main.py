@@ -137,7 +137,7 @@ def message(payload):
             #check if some of the urls are cached
             for url in urls:
                 if (r.get("markdown-"+url)):
-                    client.chat_postMessage(channel=cid, thread_ts=thread_ts, blocks=r.get("markdown-"+url))
+                    client.chat_postMessage(channel=cid, thread_ts=thread_ts, blocks=json.loads(r.get("markdown-"+url)))
                     #remove the url so that it w
                     urls.remove(url)
 

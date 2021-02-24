@@ -55,7 +55,7 @@ class ByKeyword(NewsMessage):
             blocks = self.format()
             #set cache
             if self.cache:
-                self.cache.set("markdown-"+self.text, blocks, 3600)
+                self.cache.set("markdown-"+self.text, json.dumps(blocks), 3600)
             #post result
             return self.client.chat_postMessage(channel=self.cid, blocks=blocks)
     
