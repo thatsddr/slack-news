@@ -296,8 +296,10 @@ def urlSearch():
 #API
 
 @app.route("/api/identifier")
+@cross_origin(headers=["Content-Type", "Authorization"])
+@requires_auth
 def identifier():
-    """auth0 identifier
+    """auth0 identifier, also used to check if a token is valid
     """
     return Response(), 200
 
