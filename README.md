@@ -36,18 +36,7 @@ The API has the following endpoints:
 <dl>
 <dt>/api/identifier</dt>
 <dd>Used as AUTH0 API Audience, can also be used to check if a token is valid. Returns 200 or an authentication error.</dd>
-</dl>
-The 3 methods below accept GET requests and require the following header: ```Authorization: Bearer YOUR-VALID-TOKEN-HERE```.
-If the token is valid they return data in the following format:
-```
-   {
-     "left":{"title":TITLE, "link":LINK, "source":SOURCE},
-     "center":{"title":TITLE, "link":LINK, "source":SOURCE},
-     "right":{"title":TITLE, "link":LINK, "source":SOURCE}
-    }
-```
-or ```{"Error":ERROR-MESSAGE}```. If the token is not valid you will get an authorization error.
-<dl>
+
 <dt>/api/random</dt>
 <dd>Returns a random news from at least 2 sources or an error.</dd>
 
@@ -57,3 +46,14 @@ or ```{"Error":ERROR-MESSAGE}```. If the token is not valid you will get an auth
 <dt>/api/search-url?url=YOUR-URL-HERE</dt>
 <dd>Returns a news relevant to the title of webpage you've searhced for or an error. Please note that this endpoint is the most likely to return an error, prefer keywords to URLS when possible.</dd>
 </dl>
+
+The 3 methods above accept GET requests and require the following header: ```Authorization: Bearer YOUR-VALID-TOKEN-HERE```.
+If the token is valid they return data in the following format:
+```
+   {
+     "left":{"title":TITLE, "link":LINK, "source":SOURCE},
+     "center":{"title":TITLE, "link":LINK, "source":SOURCE},
+     "right":{"title":TITLE, "link":LINK, "source":SOURCE}
+    }
+```
+or ```{"Error":ERROR-MESSAGE}```. If the token is not valid you will get an authorization error.
