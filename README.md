@@ -40,11 +40,11 @@ The API has the following endpoints:
 The 3 methods below accept GET requests and require the following header: ```Authorization: Bearer YOUR-VALID-TOKEN-HERE```.
 If the token is valid they return data in the following format:
 ```
-{
-  "left":{"title":TITLE, "link":LINK, "source":SOURCE},
-  "center":{"title":TITLE, "link":LINK, "source":SOURCE},
-  "right":{"title":TITLE, "link":LINK, "source":SOURCE}
- }
+   {
+     "left":{"title":TITLE, "link":LINK, "source":SOURCE},
+     "center":{"title":TITLE, "link":LINK, "source":SOURCE},
+     "right":{"title":TITLE, "link":LINK, "source":SOURCE}
+    }
 ```
 or ```{"Error":ERROR-MESSAGE}```. If the token is not valid you will get an authorization error.
 <dl>
