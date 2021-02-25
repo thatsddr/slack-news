@@ -33,15 +33,11 @@ Once the app is installed in the workspace, you can use the /help command to get
 
 The API has the following endpoints:
 
-* neutral-news.herokuapp.com/api/identifier
-
-Used as AUTH0 API Audience, can also be used to check if a token is valid. Returns 200 or an authentication error.
-
-* neutral-news.herokuapp.com/api/random
-* neutral-news.herokuapp.com/api/search-keyword?keyword=YOUR-KEYWORD(S)-HERE
-* neutral-news.herokuapp.com/api/search-url?url=YOUR-URL-HERE
-
-These 3 methods accept GET requests and require the following header: ```Authorization: Bearer YOUR-VALID-TOKEN-HERE```.
+<dl>
+<dt>/api/identifier</dt>
+<dd>Used as AUTH0 API Audience, can also be used to check if a token is valid. Returns 200 or an authentication error.</dd>
+</dl>
+The 3 methods below accept GET requests and require the following header: ```Authorization: Bearer YOUR-VALID-TOKEN-HERE```.
 If the token is valid they return data in the following format:
 ```
 {
@@ -50,5 +46,14 @@ If the token is valid they return data in the following format:
   "right":{"title":TITLE, "link":LINK, "source":SOURCE}
  }
 ```
-or ```{"Error":ERROR-MESSAGE}```.
+or ```{"Error":ERROR-MESSAGE}```. If the token is not valid you will get an authorization error.
+<dl>
+<dt>/api/random</dt>
+<dd>Returns a random news from at least 2 sources or an error.</dd>
 
+<dt>/api/search-keyword?keyword=YOUR-KEYWORD(S)-HERE</dt>
+<dd>Returns a news relevant to the keyword(s) you've searched for or an error.</dd>
+
+<dt>/api/search-url?url=YOUR-URL-HERE</dt>
+<dd>Returns a news relevant to the title of webpage you've searhced for or an error. Please note that this endpoint is the most likely to return an error, prefer keywords to URLS when possible.</dd>
+</dl>
