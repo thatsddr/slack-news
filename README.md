@@ -47,7 +47,7 @@ The API has the following endpoints:
 <dd>Returns a news relevant to the title of webpage you've searhced for or an error. Please note that this endpoint is the most likely to return an error, prefer keywords to URLS when possible.</dd>
 </dl>
 
-The 3 methods above accept GET requests and require the following header: ```Authorization: Bearer YOUR-VALID-TOKEN-HERE```.
+The ```/api/random```, ```/api/search-keyword```, and ```/api/search-url``` endpoints accept GET requests and require the following header: ```Authorization: Bearer YOUR-VALID-TOKEN-HERE```.
 If the token is valid they return data in the following format:
 ```
    {
