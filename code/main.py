@@ -38,10 +38,11 @@ BOT_ID = client.api_call("auth.test")["user_id"]
 # cache initialization
 r = redis.from_url(os.environ.get("REDIS_URL"))
 
-#auth0 error handling. Standard code required by auth0 in python.
-AUTH0_DOMAIN = 'ddr.eu.auth0.com'
-API_AUDIENCE = "https://neutral-news.herokuapp.com/api/identifier"
+#AUTH0 variables
+AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN")
+API_AUDIENCE = os.environ.get("API_AUDIENCE")
 ALGORITHMS = ["RS256"]
+#auth0 error handling. Standard code required by auth0 in python.
 class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
