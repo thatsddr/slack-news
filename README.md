@@ -8,10 +8,12 @@ Prerequisites: python3.8 (probably works with python3.9 as well) and pip3.
 
 If you want to install this app locally, these are the steps you need to follow:
 
-1. Download the app and install the requirements with these commands:
+1. Download the app, create a virtual environment, and install the requirements with these commands:
    ```
    gh repo clone thatsddr/slack-news
    cd slack-news
+   virtualenv venv
+   source venv/bin/activate
    pip3 install -r requirements.txt
    ```  
 2. Create a .env in the root directory file with a ```REDIS_URL``` variable or at line 39 in main.py create a local redis instance (the code should look like this: ```r = redis.Redis(host='localhost', port=6379, db=0)```)
