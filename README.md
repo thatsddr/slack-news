@@ -4,10 +4,9 @@ Neutral News is a slack app and a API that searches the web for the same news by
 >This app is not published as an API nor a slack app. However, if you have a token or know how to obtain one, the app is running at this link: neutral-news.herokuapp.com.
 
 ## Installation
-
-If you want to install this app locally, these are the steps you need to foolow:
-
 Prerequisites: python3.8 (probably works with python3.9 as well) and pip3.
+
+If you want to install this app locally, these are the steps you need to follow:
 
 1. Download the app and install the requirements with these commands:
    ```
