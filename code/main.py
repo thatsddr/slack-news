@@ -304,6 +304,17 @@ def identifier():
     """
     return Response(), 200
 
+@app.route("/")
+def home():
+    """Home, to check if everything is working
+    """
+    return """<div>
+        <h1>The server is running</h1>
+        <p>Neutral News Backend is running.</p>
+        <p>If you have an access token, or know how to obtain one, you can make GET requests to the API</p>
+        <p><a href="https://github.com/thatsddr/slack-news/blob/main/README.md#api">Documentation</a></p>
+    </div>"""
+    
 @app.route("/api/search-keyword", methods=["GET"])
 @cross_origin(headers=["Content-Type", "Authorization"])
 @requires_auth
